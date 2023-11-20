@@ -1,1 +1,1 @@
-export const DB_NAME = "ThreadStream"
+export const DB_NAME = "ThreadStream";
