@@ -131,46 +131,55 @@ const loginUser = AsyncHandler(async (req, res) => {
   // access & refresh token (generate & to be sent to user in the form of cookie)
   // send cookie
 
+  // Destructure email, username, and password from the request body
   const { email, username, password } = req.body;
   console.log(email);
 
+  // Check if either username or email is provided, as one of them is required for authentication
   if (!username && !email) {
     throw new ApiError(400, "username or email is required");
   }
 
-  // Here is an alternative of above code based on logic discussed in video:
+  // Alternative check using logical OR operator to achieve the same result
   // if (!(username || email)) {
   //     throw new ApiError(400, "username or email is required")
-
   // }
 
+  // Find a user in the database based on the provided username or email
   const user = await User.findOne({
     $or: [{ username }, { email }],
   });
 
+  // If no user is found, throw a 404 error
   if (!user) {
     throw new ApiError(404, "User does not exist");
   }
 
+  // Check if the provided password is correct for the found user
   const isPasswordValid = await user.isPasswordCorrect(password);
 
+  // If the password is not valid, throw a 401 error indicating invalid credentials
   if (!isPasswordValid) {
     throw new ApiError(401, "Invalid user credentials");
   }
 
+  // Generate access and refresh tokens for the authenticated user
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
 
+  // Fetch the logged-in user from the database, excluding sensitive information
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
+  // Configure options for HTTP-only secure cookies
   const options = {
     httpOnly: true,
     secure: true,
   };
 
+  // Return a success response with cookies containing access and refresh tokens
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
