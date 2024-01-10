@@ -194,17 +194,20 @@ const loginUser = AsyncHandler(async (req, res) => {
 });
 
 const logoutUser = AsyncHandler(async (req, res) => {
+  // Update the user document to set the refreshToken to undefined
   await User.findByIdAndUpdate(
     req.user._id,
     { $set: { refreshToken: undefined } },
     { new: true }
   );
 
+  // Configure options for HTTP-only secure cookies
   const options = {
     httpOnly: true,
     secure: true,
   };
 
+  // Return a success response with cleared access and refresh tokens cookies
   return res
     .status(200)
     .clearCookie("accessToken", options)
