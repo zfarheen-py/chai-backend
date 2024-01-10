@@ -7,15 +7,23 @@ import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
+    // Fetch the user from the database based on the provided userId
     const user = await User.findById(userId);
+
+    // Generate an access token for the user using a custom method
     const accessToken = user.generateAccessToken();
+
+    // Generate a refresh token for the user using a custom method
     const refreshToken = user.generateRefreshToken();
 
+    // Update the user's refreshToken in the database
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
+    // Return an object containing the generated access and refresh tokens
     return { accessToken, refreshToken };
   } catch (error) {
+    // Handle errors during token generation and throw a 500 Internal Server Error
     throw new ApiError(
       500,
       "Something went wrong while generating refresh and access token"
